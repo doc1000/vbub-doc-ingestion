@@ -19,6 +19,7 @@ from pydantic import ValidationError
 from ingestion_service.app.api.schemas import ClientMeta
 from ingestion_service.app.domain.contracts import CanonicalDocument
 from ingestion_service.app.orchestration.ingest_file import orchestrate_ingestion
+from ingestion_service.app.services.file_validation_service import FileValidationError
 
 router = APIRouter(prefix="/ingest")
 
@@ -48,5 +49,7 @@ async def ingest_file(
             filename=filename,
             client_meta=meta,
         )
+    except FileValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     except NotImplementedError as exc:
         raise HTTPException(status_code=501, detail=str(exc)) from exc

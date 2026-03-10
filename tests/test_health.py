@@ -22,14 +22,22 @@ def test_health_returns_200(client: TestClient) -> None:
 
 
 def test_ingest_file_stub_returns_501(client: TestClient) -> None:
-    """Phase 1: the ingest endpoint is wired but not yet implemented."""
+    """Phase 1 stub test — retained but updated.
+
+    The endpoint now executes real Phase 2 logic (validation + storage).
+    A .txt file returns 200. This test is superseded by test_ingest_file.py
+    but kept here as a record of the Phase 1 → Phase 2 transition.
+    The 501 path is still reachable for any future NotImplementedError;
+    it is tested in test_ingest_file.py via unsupported formats.
+    """
     client_meta = json.dumps({"original_filename": "test.txt"})
     response = client.post(
         "/ingest/file",
         files={"file": ("test.txt", io.BytesIO(b"hello"), "text/plain")},
         data={"client_meta": client_meta},
     )
-    assert response.status_code == 501
+    # Phase 2: real pipeline runs, returns 200 for a supported format.
+    assert response.status_code == 200
 
 
 def test_canonical_document_serialises_to_camel_case() -> None:
