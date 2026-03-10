@@ -10,9 +10,9 @@ Pipeline steps:
   3. store binary         — write original bytes to blob store, build BinaryRef
   4. route_parser         — select the correct extractor for the file type
   5. extract              — run the extractor, get raw text + parser metadata
-  6. normalize_text       — Unicode, whitespace, encoding cleanup
-  [Phase 4 TODO: remove_boilerplate — strip repeated headers/footers (PDF only)]
-  7. assemble             — build and return the CanonicalDocument
+  6. remove_boilerplate   — strip repeated headers/footers (PDF only; pass-through otherwise)
+  7. normalize_text       — Unicode, whitespace, encoding cleanup
+  8. assemble             — build and return the CanonicalDocument
 
 Rules:
 - This function must stay thin. No format-specific logic belongs here.
@@ -31,6 +31,7 @@ from ingestion_service.app.domain.contracts import (
     SourceLocator,
 )
 from ingestion_service.app.domain.enums import IngestionStatus
+from ingestion_service.app.services.boilerplate_cleanup_service import remove_boilerplate
 from ingestion_service.app.services.file_validation_service import validate_file
 from ingestion_service.app.services.parser_router import route_parser
 from ingestion_service.app.services.tag_policy_service import validate_tags
@@ -82,13 +83,16 @@ def orchestrate_ingestion(
     # Step 5 — extract raw text and parser metadata
     extraction = extractor.extract(file_bytes, filename, validation.canonical_mime)
 
-    # Step 6 — normalise text (encoding, line endings, whitespace, smart quotes)
-    # TODO Phase 4: run remove_boilerplate(extraction.clean_text, validation.canonical_mime) here for PDF
+    # Step 6 — remove boilerplate (repeated headers/footers, page numbers for PDF;
+    #           pass-through for all other MIME types)
+    cleaned = remove_boilerplate(extraction.clean_text, validation.canonical_mime)
+
+    # Step 7 — normalise text (encoding, line endings, whitespace, smart quotes)
     extraction = extraction.model_copy(
-        update={"clean_text": normalize_text(extraction.clean_text)}
+        update={"clean_text": normalize_text(cleaned)}
     )
 
-    # Step 7 — assemble canonical document
+    # Step 8 — assemble canonical document
     return CanonicalDocument.assemble(
         document_id="doc_" + uuid4().hex[:12],
         display_name=filename,

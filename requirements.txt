@@ -3,5 +3,8 @@ uvicorn[standard]
 pydantic
 python-multipart
 python-magic-bin
+PyMuPDF
+python-docx
+openpyxl
 pytest
 httpx

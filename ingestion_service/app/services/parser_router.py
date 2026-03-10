@@ -2,19 +2,28 @@
 
 The orchestrator calls route_parser() once per ingestion request.
 All format-to-extractor mappings live here; no branching elsewhere.
-
-Only txt and md are supported in Phase 3.
-Additional extractors are registered here in later phases.
 """
 
 from ingestion_service.app.extractors.base import DocumentExtractor
+from ingestion_service.app.extractors.csv_extractor import CsvExtractor
+from ingestion_service.app.extractors.docx_extractor import DocxExtractor
+from ingestion_service.app.extractors.pdf_extractor import PdfExtractor
 from ingestion_service.app.extractors.text_extractor import TextExtractor
+from ingestion_service.app.extractors.xlsx_extractor import XlsxExtractor
 
 _TEXT_EXTRACTOR = TextExtractor()
+_PDF_EXTRACTOR = PdfExtractor()
+_DOCX_EXTRACTOR = DocxExtractor()
+_CSV_EXTRACTOR = CsvExtractor()
+_XLSX_EXTRACTOR = XlsxExtractor()
 
 _EXTENSION_MAP: dict[str, DocumentExtractor] = {
     "txt": _TEXT_EXTRACTOR,
     "md": _TEXT_EXTRACTOR,
+    "pdf": _PDF_EXTRACTOR,
+    "docx": _DOCX_EXTRACTOR,
+    "csv": _CSV_EXTRACTOR,
+    "xlsx": _XLSX_EXTRACTOR,
 }
 
 
