@@ -3,20 +3,19 @@
 Responsibility: validate an uploaded file before any processing begins.
 
 Checks performed:
-  - File size against MAX_UPLOAD_SIZE_MB (default 25 MB, overridden by env var).
+  - File size against settings.max_upload_size_mb (default 25 MB).
   - Extension extracted and normalised from the filename.
   - Extension membership in the supported v1 format list.
   - MIME type detected from file bytes via python-magic (magic-byte sniffing).
   - SHA-256 hash of the raw bytes.
 
-Raises ValueError (FileValidationError subclass) on rejection so that the
-error handler introduced in Phase 6 can map it to a 422 response.
+Raises FileValidationError (a ValueError subclass) on rejection so that the
+error handler in error_handlers.py maps it to a 422 response.
 Internal results are returned as a ValidationResult dataclass — not a
 Pydantic model, since this is an internal intermediate, not a public contract.
 """
 
 import hashlib
-import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -24,10 +23,8 @@ from typing import Optional
 import magic
 
 from ingestion_service.app.api.schemas import ClientMeta
+from ingestion_service.app.config import settings
 from ingestion_service.app.domain.enums import SupportedFormat
-
-# Default limit; overridden by MAX_UPLOAD_SIZE_MB env var in Phase 6 config.
-_DEFAULT_MAX_MB = int(os.environ.get("MAX_UPLOAD_SIZE_MB", "25"))
 
 _SUPPORTED_EXTENSIONS: frozenset[str] = frozenset(f.value for f in SupportedFormat)
 
@@ -74,12 +71,12 @@ def validate_file(
         FileValidationError: if the file fails any validation check.
     """
     size_bytes = len(file_bytes)
-    max_bytes = _DEFAULT_MAX_MB * 1024 * 1024
+    max_bytes = settings.max_upload_size_mb * 1024 * 1024
 
     if size_bytes > max_bytes:
         raise FileValidationError(
             f"File size {size_bytes} bytes exceeds the maximum of "
-            f"{_DEFAULT_MAX_MB} MB ({max_bytes} bytes)."
+            f"{settings.max_upload_size_mb} MB ({max_bytes} bytes)."
         )
 
     # Normalise extension: strip leading dot, lowercase, handle missing extension.

@@ -20,11 +20,12 @@ Rules:
 - Do not import FastAPI objects into this module.
 """
 
-import os
+import logging
 from datetime import datetime, timezone
 from uuid import uuid4
 
 from ingestion_service.app.api.schemas import ClientMeta
+from ingestion_service.app.config import settings
 from ingestion_service.app.domain.contracts import (
     BinaryRef,
     CanonicalDocument,
@@ -38,7 +39,7 @@ from ingestion_service.app.services.tag_policy_service import validate_tags
 from ingestion_service.app.services.text_normalization_service import normalize_text
 from ingestion_service.app.storage.blob_store import LocalBlobStore
 
-_STORAGE_ROOT = os.environ.get("BINARY_STORAGE_PATH", "./data/blobs")
+logger = logging.getLogger(__name__)
 
 
 def orchestrate_ingestion(
@@ -56,20 +57,30 @@ def orchestrate_ingestion(
     Returns:
         A fully populated CanonicalDocument with status = ready_for_indexing.
     """
+    logger.info("Pipeline started | filename=%s | size_bytes=%d", filename, len(file_bytes))
+
     # Step 1 — validate file (raises FileValidationError on rejection)
     validation = validate_file(file_bytes, filename, client_meta)
+    logger.info(
+        "Step 1 validated | ext=%s | mime=%s | sha256=%.16s…",
+        validation.extension,
+        validation.canonical_mime,
+        validation.sha256,
+    )
 
     # Step 2 — validate and normalise user tags
     tags = validate_tags(client_meta.user_tags)
+    logger.info("Step 2 tags | count=%d | tags=%s", len(tags), tags)
 
     # Step 3 — store original binary; build BinaryRef inline
-    store = LocalBlobStore(_STORAGE_ROOT)
+    store = LocalBlobStore(settings.binary_storage_path)
     storage_key = store.put(file_bytes, filename, validation.sha256)
     binary_ref = BinaryRef(
         storage_key=storage_key,
         checksum_sha256=validation.sha256,
         size_bytes=validation.size_bytes,
     )
+    logger.info("Step 3 stored | key=%s", storage_key)
 
     source_locator = SourceLocator(
         device_label=client_meta.device_label,
@@ -79,21 +90,35 @@ def orchestrate_ingestion(
 
     # Step 4 — select extractor (raises ValueError for unsupported formats)
     extractor = route_parser(validation.canonical_mime, validation.extension)
+    logger.info("Step 4 routed | extractor=%s", type(extractor).__name__)
 
     # Step 5 — extract raw text and parser metadata
     extraction = extractor.extract(file_bytes, filename, validation.canonical_mime)
+    logger.info(
+        "Step 5 extracted | parser=%s | text_len=%d | warnings=%d",
+        extraction.parser_name,
+        len(extraction.clean_text),
+        len(extraction.warnings),
+    )
+    if extraction.warnings:
+        logger.warning("Extraction warnings for %s: %s", filename, extraction.warnings)
 
-    # Step 6 — remove boilerplate (repeated headers/footers, page numbers for PDF;
-    #           pass-through for all other MIME types)
+    # Step 6 — remove boilerplate (pass-through for non-PDF)
     cleaned = remove_boilerplate(extraction.clean_text, validation.canonical_mime)
+    logger.info(
+        "Step 6 boilerplate removed | before=%d chars | after=%d chars",
+        len(extraction.clean_text),
+        len(cleaned),
+    )
 
     # Step 7 — normalise text (encoding, line endings, whitespace, smart quotes)
     extraction = extraction.model_copy(
         update={"clean_text": normalize_text(cleaned)}
     )
+    logger.info("Step 7 normalised | final_text_len=%d", len(extraction.clean_text))
 
     # Step 8 — assemble canonical document
-    return CanonicalDocument.assemble(
+    doc = CanonicalDocument.assemble(
         document_id="doc_" + uuid4().hex[:12],
         display_name=filename,
         canonical_mime=validation.canonical_mime,
@@ -105,3 +130,9 @@ def orchestrate_ingestion(
         status=IngestionStatus.ready_for_indexing,
         created_at=datetime.now(timezone.utc),
     )
+    logger.info(
+        "Pipeline complete | document_id=%s | status=%s",
+        doc.document_id,
+        doc.status,
+    )
+    return doc

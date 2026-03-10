@@ -42,9 +42,9 @@ def test_missing_extension_raises() -> None:
 
 
 def test_oversized_file_raises(monkeypatch: pytest.MonkeyPatch) -> None:
-    # Patch the module-level default to 1 MB for the test.
-    import ingestion_service.app.services.file_validation_service as svc
-    monkeypatch.setattr(svc, "_DEFAULT_MAX_MB", 1)
+    # Patch the settings singleton so the validation reads a 1 MB limit.
+    import ingestion_service.app.config as cfg
+    monkeypatch.setattr(cfg.settings, "max_upload_size_mb", 1)
     big = b"x" * (1024 * 1024 + 1)
     with pytest.raises(FileValidationError, match="exceeds the maximum"):
         validate_file(big, "big.txt", _meta("big.txt"))
