@@ -250,9 +250,13 @@ intermediates (`ValidationResult`) are defined in
 - `uvicorn ingestion_service.app.main:app --reload` starts without errors.
 - `GET /health` returns `{"status": "ok"}`.
 - `POST /ingest/file` returns 501.
+      in terminal:
+      curl.exe -X POST "http://127.0.0.1:8000/ingest/file" -F "file=@README.md" -F 'client_meta={"original_filename":"README.md","browser_mime":"text/markdown","size_bytes":123}'
+
 - `CanonicalDocument` serializes to camelCase JSON matching the README example.
 - `pytest` passes.
-
+      terminal: python -m pytest -v
+      -- add -k 'ingest' to specify only tests containing 'ingest' 
 ### Stop and Review
 
 - Inspect `contracts.py`: all field names, types, and camelCase aliases match the README JSON example exactly.
