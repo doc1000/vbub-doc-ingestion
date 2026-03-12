@@ -88,8 +88,8 @@ def orchestrate_ingestion(
         local_path_hint=client_meta.local_path_hint,
     )
 
-    # Step 4 — select extractor (raises ValueError for unsupported formats)
-    extractor = route_parser(validation.canonical_mime, validation.extension)
+    # Step 4 — select extractor (raises FileValidationError for unsupported formats)
+    extractor = route_parser(validation.canonical_mime, validation.extension, file_bytes)
     logger.info("Step 4 routed | extractor=%s", type(extractor).__name__)
 
     # Step 5 — extract raw text and parser metadata

@@ -25,16 +25,18 @@ def _error_shape(body: dict) -> bool:
 
 
 def test_unsupported_extension_returns_422_json(client: TestClient) -> None:
+    # Use .xls with binary content — an explicitly rejected binary format.
+    binary_content = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"\x00" * 200
     response = client.post(
         "/ingest/file",
-        files={"file": ("archive.zip", io.BytesIO(b"data"), "application/zip")},
-        data={"client_meta": json.dumps({"original_filename": "archive.zip"})},
+        files={"file": ("report.xls", io.BytesIO(binary_content), "application/vnd.ms-excel")},
+        data={"client_meta": json.dumps({"original_filename": "report.xls"})},
     )
     assert response.status_code == 422
     body = response.json()
     assert _error_shape(body), f"Unexpected body: {body}"
     assert body["error"] == "FileValidationError"
-    assert "Unsupported" in body["detail"]
+    assert ".xls" in body["detail"]
 
 
 def test_malformed_client_meta_returns_400(client: TestClient) -> None:
@@ -61,14 +63,15 @@ def test_missing_file_field_returns_422(client: TestClient) -> None:
 
 def test_error_responses_are_not_html(client: TestClient) -> None:
     """Error responses must be JSON, never HTML."""
+    # Use .xls with binary content — an explicitly rejected binary format.
+    binary_content = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"\x00" * 200
     response = client.post(
         "/ingest/file",
-        files={"file": ("bad.zip", io.BytesIO(b"x"), "application/zip")},
-        data={"client_meta": json.dumps({"original_filename": "bad.zip"})},
+        files={"file": ("bad.xls", io.BytesIO(binary_content), "application/vnd.ms-excel")},
+        data={"client_meta": json.dumps({"original_filename": "bad.xls"})},
     )
     assert response.status_code == 422
     assert response.headers["content-type"].startswith("application/json")
-    # Ensure it is valid JSON and does not contain HTML boilerplate
     body = response.text
     assert "<html" not in body.lower()
     assert "<body" not in body.lower()

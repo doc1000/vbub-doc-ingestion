@@ -528,6 +528,26 @@
         </div>
         <div class="module">
           <div class="tag-row">
+            <span class="tag warn">Phase 7 — Router Hardening</span>
+          </div>
+          <h4>Hybrid Routing Policy</h4>
+          <ul>
+            <li>Router no longer relies on suffix alone</li>
+            <li>Strong formats (PDF, DOCX, XLSX, CSV) route by extension first</li>
+            <li><code>BINARY_REJECT_EXTENSIONS</code> — explicit reject set (.xls, .exe, .dll, .bin, .dat); .xls returns clear 422 recommending .xlsx</li>
+            <li><code>TEXT_LIKE_EXTENSIONS</code> — aliases (.bat, .jsx, .ps1, .json, .yaml, …) route to TextExtractor only if <code>is_probably_text()</code> confirms content</li>
+            <li>Unknown/suffixless files accepted if <code>is_probably_text()</code> returns True</li>
+            <li>Binary content mislabeled with a text-like suffix is rejected, never reaches TextExtractor</li>
+          </ul>
+          <h4 style="margin-top:12px">content_classification_service.py</h4>
+          <ul>
+            <li>Lightweight, stdlib-only helper used exclusively by ParserRouter</li>
+            <li><code>is_probably_text(file_bytes)</code> — inspects first 8 KB; checks null-byte ratio, UTF-8 decode, printable-character ratio (≥ 0.85)</li>
+            <li>No external text-detection libraries</li>
+          </ul>
+        </div>
+        <div class="module">
+          <div class="tag-row">
             <span class="tag green">Adapters</span>
           </div>
           <h4>First adapters</h4>
@@ -792,6 +812,7 @@ extract(fileBytes, filename, canonicalMime) -> {
 │   │   ├── tag_policy_service.py
 │   │   ├── binary_storage_service.py
 │   │   ├── parser_router.py
+│   │   ├── content_classification_service.py  ← Phase 7: text-like detection, binary reject
 │   │   ├── text_normalization_service.py
 │   │   ├── boilerplate_cleanup_service.py
 │   │   ├── tabular_text_policy_service.py
@@ -1080,6 +1101,14 @@ Phase 6 — Integration hardening
  28. Add basic config settings for dev/prod storage backends
  29. Add Fly process-group deployment notes
  30. Freeze v1 payload schema and stop expanding scope
+
+Phase 7 — Parser Router hardening
+ 31. Add content_classification_service.py (TEXT_LIKE_EXTENSIONS, BINARY_REJECT_EXTENSIONS, is_probably_text)
+ 32. Replace suffix-only routing with hybrid policy in parser_router.py
+ 33. Relax file_validation_service extension whitelist; router now owns routing decisions
+ 34. Explicit .xls rejection with clear 422 recommending .xlsx
+ 35. Binary content mislabeled with text-like suffix is rejected before TextExtractor
+ 36. Unknown/suffixless files accepted if content is text-like
 
 Later, not now
   - HTML/webpage ingestion adapter

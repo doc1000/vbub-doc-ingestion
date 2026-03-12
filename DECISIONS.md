@@ -11,3 +11,49 @@ Reason:
 - operational simplicity
 - machine isolation
 - pattern reusable for other app components
+
+
+
+## to do ideas
+
+## excel junkiness
+a lot of wierd characters... unnecessarily long. - only using extension to decide file type
+
+## create a small fixed text pack to make sure that local and remote behave correctly - can be referenced by test set:
+sample.txt
+sample.md
+sample.pdf
+sample.docx
+sample.csv
+sample.xlsx
+one unsupported file
+one malformed metadata request
+
+save payload examples to compare local vs remote
+
+## test linux vs windows issues:
+Because local dev was on Windows and deploy is Linux, the things most worth watching are:
+
+file path handling
+
+temp/binary storage directory permissions
+
+MIME detection behavior
+
+package/system dependency differences
+
+newline/encoding corner cases
+
+So yes, your testing plan is correct, but I’d add one explicit step:
+
+6. Verify binary storage path and permissions remotely
+
+Make sure the ingestion process can actually write to its configured local storage path in Fly.
+
+A service can pass all local tests and still fail remotely if:
+
+the directory doesn’t exist
+
+the process user lacks permission
+
+storage is ephemeral in a way you didn’t expect

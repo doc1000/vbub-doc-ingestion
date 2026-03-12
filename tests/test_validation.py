@@ -31,14 +31,18 @@ def test_extension_normalised_to_lowercase() -> None:
     assert result.extension == "txt"
 
 
-def test_unsupported_extension_raises() -> None:
-    with pytest.raises(FileValidationError, match="Unsupported file type"):
-        validate_file(b"data", "archive.zip", _meta("archive.zip"))
+def test_unsupported_extension_passes_validation() -> None:
+    """Phase 7: extension filtering moved to ParserRouter; validation now accepts any extension."""
+    result = validate_file(b"data", "archive.zip", _meta("archive.zip"))
+    assert result.extension == "zip"
+    assert result.is_valid is True
 
 
-def test_missing_extension_raises() -> None:
-    with pytest.raises(FileValidationError, match="no extension"):
-        validate_file(b"data", "noextension", _meta("noextension"))
+def test_missing_extension_passes_validation() -> None:
+    """Phase 7: files with no extension pass validation; router decides what to do."""
+    result = validate_file(b"data", "noextension", _meta("noextension"))
+    assert result.extension == ""
+    assert result.is_valid is True
 
 
 def test_oversized_file_raises(monkeypatch: pytest.MonkeyPatch) -> None:

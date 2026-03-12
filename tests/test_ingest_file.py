@@ -104,9 +104,11 @@ def test_document_id_has_doc_prefix(client: TestClient) -> None:
 
 
 def test_unsupported_extension_returns_422(client: TestClient) -> None:
-    response = _post_file(client, b"data", "archive.zip")
+    # .xls with binary content is an explicitly rejected format in Phase 7.
+    binary_content = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"\x00" * 200
+    response = _post_file(client, binary_content, "report.xls")
     assert response.status_code == 422
-    assert "Unsupported file type" in response.json()["detail"]
+    assert ".xls" in response.json()["detail"]
 
 
 def test_malformed_client_meta_returns_400(client: TestClient) -> None:

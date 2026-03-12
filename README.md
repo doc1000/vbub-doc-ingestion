@@ -127,6 +127,8 @@ Supported formats in V1:
 - csv
 - xlsx
 
+**Phase 7 note:** The router also accepts text-like file aliases (e.g. `.bat`, `.jsx`, `.ps1`, `.yaml`, `.json`) and suffixless files when content-based detection confirms they are plain text. Unsupported binary formats such as `.xls` are rejected cleanly with a 422 error; `.xls` uploads should be converted to `.xlsx` before uploading.
+
 ---
 
 ### Text Extraction

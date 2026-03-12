@@ -5,7 +5,9 @@ Responsibility: validate an uploaded file before any processing begins.
 Checks performed:
   - File size against settings.max_upload_size_mb (default 25 MB).
   - Extension extracted and normalised from the filename.
-  - Extension membership in the supported v1 format list.
+  - Extension is *not* rejected here based on the v1 supported list; that
+    responsibility has moved to ParserRouter (Phase 7).  The validator only
+    rejects files that are structurally invalid (too large, no name, etc.).
   - MIME type detected from file bytes via python-magic (magic-byte sniffing).
   - SHA-256 hash of the raw bytes.
 
@@ -24,9 +26,6 @@ import magic
 
 from ingestion_service.app.api.schemas import ClientMeta
 from ingestion_service.app.config import settings
-from ingestion_service.app.domain.enums import SupportedFormat
-
-_SUPPORTED_EXTENSIONS: frozenset[str] = frozenset(f.value for f in SupportedFormat)
 
 
 class FileValidationError(ValueError):
@@ -82,17 +81,6 @@ def validate_file(
     # Normalise extension: strip leading dot, lowercase, handle missing extension.
     suffix = Path(filename).suffix
     extension = suffix.lstrip(".").lower() if suffix else ""
-
-    if not extension:
-        raise FileValidationError(
-            f"Cannot determine file type: filename '{filename}' has no extension."
-        )
-
-    if extension not in _SUPPORTED_EXTENSIONS:
-        raise FileValidationError(
-            f"Unsupported file type '.{extension}'. "
-            f"Supported formats: {sorted(_SUPPORTED_EXTENSIONS)}."
-        )
 
     # Magic-byte MIME detection — more reliable than client-supplied MIME.
     canonical_mime: str = magic.from_buffer(file_bytes, mime=True)
