@@ -11,13 +11,13 @@ Covers:
 
 import pytest
 
-from ingestion_service.app.extractors.csv_extractor import CsvExtractor
-from ingestion_service.app.extractors.docx_extractor import DocxExtractor
-from ingestion_service.app.extractors.pdf_extractor import PdfExtractor
-from ingestion_service.app.extractors.text_extractor import TextExtractor
-from ingestion_service.app.extractors.xlsx_extractor import XlsxExtractor
-from ingestion_service.app.services.file_validation_service import FileValidationError
-from ingestion_service.app.services.parser_router import route_parser
+from vbub_doc_ingestion.extractors.csv_extractor import CsvExtractor
+from vbub_doc_ingestion.extractors.docx_extractor import DocxExtractor
+from vbub_doc_ingestion.extractors.pdf_extractor import PdfExtractor
+from vbub_doc_ingestion.extractors.text_extractor import TextExtractor
+from vbub_doc_ingestion.extractors.xlsx_extractor import XlsxExtractor
+from vbub_doc_ingestion.services.file_validation_service import FileValidationError
+from vbub_doc_ingestion.services.parser_router import route_parser
 
 _TEXT_BYTES = b"This is plain text content for routing tests.\nSecond line.\n"
 _BINARY_BYTES = b"\x00" * 300 + b"\xff\xfe" * 100

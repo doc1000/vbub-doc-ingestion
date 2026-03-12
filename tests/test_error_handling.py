@@ -15,7 +15,7 @@ from fastapi.testclient import TestClient
 @pytest.fixture(autouse=True)
 def use_tmp_storage(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Redirect blob storage to a temp directory for each test."""
-    import ingestion_service.app.config as cfg
+    import vbub_doc_ingestion.config as cfg
     monkeypatch.setattr(cfg.settings, "binary_storage_path", str(tmp_path))
 
 
@@ -81,7 +81,7 @@ def test_oversized_file_returns_422_json(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Uploading a file larger than max_upload_size_mb returns 422 JSON."""
-    import ingestion_service.app.config as cfg
+    import vbub_doc_ingestion.config as cfg
     monkeypatch.setattr(cfg.settings, "max_upload_size_mb", 1)
     big_content = b"x" * (1024 * 1024 + 1)
     response = client.post(

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from ingestion_service.app.extractors.csv_extractor import CsvExtractor
+from vbub_doc_ingestion.extractors.csv_extractor import CsvExtractor
 
 FIXTURES = Path(__file__).parent / "fixtures"
 

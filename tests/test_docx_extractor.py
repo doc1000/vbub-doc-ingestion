@@ -6,7 +6,7 @@ from pathlib import Path
 import docx
 import pytest
 
-from ingestion_service.app.extractors.docx_extractor import DocxExtractor
+from vbub_doc_ingestion.extractors.docx_extractor import DocxExtractor
 
 FIXTURES = Path(__file__).parent / "fixtures"
 

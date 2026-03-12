@@ -4,8 +4,8 @@ import hashlib
 
 import pytest
 
-from ingestion_service.app.api.schemas import ClientMeta
-from ingestion_service.app.services.file_validation_service import (
+from vbub_doc_ingestion.domain.schemas import ClientMeta
+from vbub_doc_ingestion.services.file_validation_service import (
     FileValidationError,
     validate_file,
 )
@@ -47,7 +47,7 @@ def test_missing_extension_passes_validation() -> None:
 
 def test_oversized_file_raises(monkeypatch: pytest.MonkeyPatch) -> None:
     # Patch the settings singleton so the validation reads a 1 MB limit.
-    import ingestion_service.app.config as cfg
+    import vbub_doc_ingestion.config as cfg
     monkeypatch.setattr(cfg.settings, "max_upload_size_mb", 1)
     big = b"x" * (1024 * 1024 + 1)
     with pytest.raises(FileValidationError, match="exceeds the maximum"):

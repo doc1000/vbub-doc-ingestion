@@ -7,9 +7,9 @@ and produce a valid ExtractionResult.
 
 import pytest
 
-from ingestion_service.app.extractors.text_extractor import TextExtractor
-from ingestion_service.app.services.file_validation_service import FileValidationError
-from ingestion_service.app.services.parser_router import route_parser
+from vbub_doc_ingestion.extractors.text_extractor import TextExtractor
+from vbub_doc_ingestion.services.file_validation_service import FileValidationError
+from vbub_doc_ingestion.services.parser_router import route_parser
 
 
 def _route_and_extract(content: bytes, filename: str, extension: str) -> None:

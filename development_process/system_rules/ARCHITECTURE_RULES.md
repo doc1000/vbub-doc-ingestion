@@ -163,7 +163,9 @@ If the answer is “later,” defer it.
 ## Deployment Direction
 
 - Local development first
-- FastAPI service
+- Dual-mode usage: import (primary) and HTTP service (optional adapter)
+- VaultBubbles imports vbub_doc_ingestion directly for in-process ingestion
+- FastAPI adapter available under adapters/fastapi_app/ for standalone HTTP usage
 - Same Fly app in production
 - Separate process group for ingestion
-- Clean internal API boundary from backend to ingestion service
+- Clean internal API boundary from backend to ingestion package

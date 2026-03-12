@@ -2,7 +2,7 @@
 
 import pytest
 
-from ingestion_service.app.services.tag_policy_service import validate_tags
+from vbub_doc_ingestion.services.tag_policy_service import validate_tags
 
 
 def test_none_returns_empty_list() -> None:

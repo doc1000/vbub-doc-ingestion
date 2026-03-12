@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from ingestion_service.app.extractors.text_extractor import TextExtractor
+from vbub_doc_ingestion.extractors.text_extractor import TextExtractor
 
 FIXTURES = Path(__file__).parent / "fixtures"
 

@@ -6,7 +6,7 @@ import io
 import openpyxl
 import pytest
 
-from ingestion_service.app.extractors.xlsx_extractor import XlsxExtractor
+from vbub_doc_ingestion.extractors.xlsx_extractor import XlsxExtractor
 
 FIXTURES = Path(__file__).parent / "fixtures"
 _DOCX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"

@@ -2,7 +2,7 @@
 
 import pytest
 
-from ingestion_service.app.services.content_classification_service import (
+from vbub_doc_ingestion.services.content_classification_service import (
     BINARY_REJECT_EXTENSIONS,
     TEXT_LIKE_EXTENSIONS,
     is_probably_text,

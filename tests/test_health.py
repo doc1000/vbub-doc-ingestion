@@ -6,13 +6,13 @@ from datetime import datetime, timezone
 
 from fastapi.testclient import TestClient
 
-from ingestion_service.app.domain.contracts import (
+from vbub_doc_ingestion.domain.contracts import (
     BinaryRef,
     CanonicalDocument,
     ExtractionResult,
     SourceLocator,
 )
-from ingestion_service.app.domain.enums import IngestionStatus
+from vbub_doc_ingestion.domain.enums import IngestionStatus
 
 
 def test_health_returns_200(client: TestClient) -> None:

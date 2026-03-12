@@ -17,7 +17,7 @@ from fastapi.testclient import TestClient
 @pytest.fixture(autouse=True)
 def use_tmp_storage(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Redirect blob storage to a temp directory for each test."""
-    import ingestion_service.app.config as cfg
+    import vbub_doc_ingestion.config as cfg
     monkeypatch.setattr(cfg.settings, "binary_storage_path", str(tmp_path))
 
 

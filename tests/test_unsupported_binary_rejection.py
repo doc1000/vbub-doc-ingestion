@@ -8,8 +8,8 @@ Confirms that:
 
 import pytest
 
-from ingestion_service.app.services.file_validation_service import FileValidationError
-from ingestion_service.app.services.parser_router import route_parser
+from vbub_doc_ingestion.services.file_validation_service import FileValidationError
+from vbub_doc_ingestion.services.parser_router import route_parser
 
 # Simulated binary content: many null bytes plus high-byte sequences.
 _BINARY_BLOB = b"\x00\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"\x00" * 300 + b"\xff\xfe" * 100

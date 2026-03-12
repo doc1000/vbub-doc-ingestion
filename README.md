@@ -17,11 +17,16 @@ All parsing, cleanup, and validation occur exactly once during ingestion. Downst
 
 ## Purpose
 
-`vbub-doc-ingestion` is a standalone Python service responsible for transforming uploaded documents into normalized, machine-readable text with structured metadata.
+`vbub-doc-ingestion` is a reusable Python package (and optional HTTP service) responsible for transforming uploaded documents into normalized, machine-readable text with structured metadata.
 
 It serves as the **ingestion boundary** for the VaultBubbles ecosystem.
 
-The service:
+The package supports two usage modes:
+
+1. **Import mode (primary)** — VaultBubbles imports the package directly and calls its orchestration functions in-process.
+2. **Service mode (optional)** — A thin FastAPI adapter exposes the same ingestion pipeline as an HTTP API.
+
+The package:
 
 - receives uploaded files
 - validates file type and metadata
@@ -225,16 +230,16 @@ The ingestion service is considered successful if:
 
 VaultBubbles Backend
 │
-│ HTTP request
+│ Import (primary) or HTTP request (optional)
 ▼
-vbub-doc-ingestion (FastAPI)
+vbub_doc_ingestion package
 │
 ▼
-CanonicalDocument JSON
+CanonicalDocument
 
 ```
 
-The ingestion service is **API-only**.
+The ingestion package can be used as a direct import or as an HTTP service.
 
 It does not provide a frontend.
 
@@ -307,54 +312,46 @@ Recommended project layout:
 ```
 
 vbub_doc_ingestion/
-
-ingestion_service/
-├── app/
 │
-│   ├── api/
-│   │   ├── routes_ingest.py
-│   │   └── schemas.py
+├── src/
+│   └── vbub_doc_ingestion/         # Core package (no FastAPI dependency)
+│       ├── __init__.py              # Public API: orchestrate_ingestion, ClientMeta, CanonicalDocument
+│       ├── config.py
+│       ├── domain/
+│       │   ├── contracts.py         # CanonicalDocument and related models
+│       │   ├── enums.py
+│       │   └── schemas.py           # ClientMeta
+│       ├── orchestration/
+│       │   └── ingest_file.py       # orchestrate_ingestion() entrypoint
+│       ├── services/
+│       │   ├── file_validation_service.py
+│       │   ├── parser_router.py
+│       │   ├── tag_policy_service.py
+│       │   ├── text_normalization_service.py
+│       │   ├── boilerplate_cleanup_service.py
+│       │   ├── content_classification_service.py
+│       │   └── tabular_text_policy_service.py
+│       ├── extractors/
+│       │   ├── base.py
+│       │   ├── text_extractor.py
+│       │   ├── pdf_extractor.py
+│       │   ├── docx_extractor.py
+│       │   ├── csv_extractor.py
+│       │   └── xlsx_extractor.py
+│       └── storage/
+│           └── blob_store.py
 │
-│   ├── domain/
-│   │   ├── contracts.py
-│   │   ├── models.py
-│   │   └── enums.py
-│
-│   ├── orchestration/
-│   │   └── ingest_file.py
-│
-│   ├── services/
-│   │   ├── upload_gateway.py
-│   │   ├── file_validation_service.py
-│   │   ├── tag_policy_service.py
-│   │   ├── binary_storage_service.py
-│   │   ├── parser_router.py
-│   │   ├── text_normalization_service.py
-│   │   ├── boilerplate_cleanup_service.py
-│   │   └── tabular_text_policy_service.py
-│
-│   ├── extractors/
-│   │   ├── base.py
-│   │   ├── pdf_extractor.py
-│   │   ├── docx_extractor.py
-│   │   ├── text_extractor.py
-│   │   ├── csv_extractor.py
-│   │   └── xlsx_extractor.py
-│
-│   ├── storage/
-│   │   ├── blob_store.py
-│   │   └── metadata_repo.py
-│
-│   └── main.py
+├── adapters/
+│   └── fastapi_app/                 # Optional HTTP adapter (requires FastAPI)
+│       ├── main.py
+│       ├── routes_ingest.py
+│       └── error_handlers.py
 │
 ├── tests/
 │   ├── fixtures/
-│   ├── test_ingest_file.py
-│   └── test_extractors.py
+│   └── ...
 │
-├── ARCHITECTURE_RULES.md
-├── IMPLEMENTATION_PLAN.md
-├── ingest_architecture_map.html
+├── pyproject.toml
 └── README.md
 
 ````
@@ -515,18 +512,42 @@ SERVICE_NAME=vbub-doc-ingestion
 
 # Setup Instructions
 
-## Install dependencies
+## Install the package
 
 ```
-pip install -r requirements.txt
+pip install -e .
+```
+
+To include FastAPI adapter dependencies:
+
+```
+pip install -e ".[server]"
+```
+
+To include test dependencies:
+
+```
+pip install -e ".[dev]"
 ```
 
 ---
 
-## Run locally
+## Usage: Import mode (primary)
+
+```python
+from vbub_doc_ingestion import orchestrate_ingestion, ClientMeta
+
+meta = ClientMeta(original_filename="report.pdf")
+doc = orchestrate_ingestion(file_bytes, "report.pdf", meta)
+```
+
+---
+
+## Usage: Service mode (optional)
 
 ```
-uvicorn ingestion_service.app.main:app --reload
+pip install -e ".[server]"
+uvicorn adapters.fastapi_app.main:app --reload
 ```
 
 Server runs at:

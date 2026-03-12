@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from ingestion_service.app.storage.blob_store import LocalBlobStore
+from vbub_doc_ingestion.storage.blob_store import LocalBlobStore
 
 
 def test_put_writes_file_to_expected_path(tmp_path: Path) -> None:

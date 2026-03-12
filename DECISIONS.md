@@ -14,6 +14,17 @@ Reason:
 
 
 
+## 2026-03-12 — Package conversion: ingestion_service -> vbub_doc_ingestion
+Reason:
+- VaultBubbles needs to import ingestion directly, not just call via HTTP
+- core pipeline must not depend on FastAPI
+- enables dual mode: import (primary) and HTTP service (optional adapter)
+- proper Python packaging with pyproject.toml and src layout
+- ClientMeta moved from api/schemas to domain/schemas (breaks core-depends-on-API coupling)
+- FastAPI code moved to adapters/fastapi_app/ as thin transport wrapper
+
+---
+
 ## to do ideas
 
 ## excel junkiness

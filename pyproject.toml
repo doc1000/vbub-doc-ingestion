@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vbub-doc-ingestion"
+version = "0.1.0"
+description = "Reusable document-ingestion pipeline for VaultBubbles."
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic",
+    "pydantic-settings",
+    "python-magic-bin",
+    "PyMuPDF",
+    "python-docx",
+    "openpyxl",
+]
+
+[project.optional-dependencies]
+server = [
+    "fastapi",
+    "uvicorn[standard]",
+    "python-multipart",
+]
+dev = [
+    "pytest",
+    "httpx",
+    "fastapi",
+    "python-multipart",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

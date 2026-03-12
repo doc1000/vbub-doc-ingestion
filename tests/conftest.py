@@ -3,7 +3,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from ingestion_service.app.main import app
+from adapters.fastapi_app.main import app
 
 
 @pytest.fixture()

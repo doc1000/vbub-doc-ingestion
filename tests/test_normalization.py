@@ -2,7 +2,7 @@
 
 import unicodedata
 
-from ingestion_service.app.services.text_normalization_service import normalize_text
+from vbub_doc_ingestion.services.text_normalization_service import normalize_text
 
 
 def test_crlf_converted_to_lf() -> None:
